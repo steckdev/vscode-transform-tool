@@ -100,27 +100,47 @@ const jsonToGraphQLSchema = (jsonString: string): string => {
 
 export const transformers: Record<string, (input: string) => string> = {
   json_to_typescript: (input: string) => {
-    let result = "";
-    JsonToTS(JSON.parse(input)).forEach((typeInterface: string) => {
-      result += `${typeInterface}\n`;
-    });
-    return result;
+    try {
+      let result = "";
+      JsonToTS(JSON.parse(input)).forEach((typeInterface: string) => {
+        result += `${typeInterface}\n`;
+      });
+      return result;
+    } catch (error) {
+      throw new Error(`Invalid JSON input. Expected valid JSON like: {"name": "John", "age": 30}`);
+    }
   },
 
   json_to_zod: (input: string) => {
-    return jsonToZod(JSON.parse(input));
+    try {
+      return jsonToZod(JSON.parse(input));
+    } catch (error) {
+      throw new Error(`Invalid JSON input. Expected valid JSON like: {"name": "John", "age": 30}`);
+    }
   },
 
   json_to_graphql: (input: string) => {
-    return jsonToGraphQLSchema(input);
+    try {
+      return jsonToGraphQLSchema(input);
+    } catch (error) {
+      throw new Error(`Invalid JSON input. Expected a valid JSON object like: {"user": {"name": "John"}}`);
+    }
   },
 
   json_to_mysql: (input: string) => {
-    return gs.mysql(JSON.parse(input));
+    try {
+      return gs.mysql(JSON.parse(input));
+    } catch (error) {
+      throw new Error(`Invalid JSON input. Expected valid JSON like: {"id": 1, "name": "John"}`);
+    }
   },
 
   json_to_mongoose: (input: string) => {
-    return JSON.stringify(gs.mongoose(JSON.parse(input)), null, 2);
+    try {
+      return JSON.stringify(gs.mongoose(JSON.parse(input)), null, 2);
+    } catch (error) {
+      throw new Error(`Invalid JSON input. Expected valid JSON like: {"name": "John", "age": 30}`);
+    }
   },
 
   js_object_to_json: (input: string) => {
@@ -139,19 +159,35 @@ export const transformers: Record<string, (input: string) => string> = {
   },
 
   yaml_to_json: (input: string) => {
-    return JSON.stringify(yaml.parse(input), null, 2);
+    try {
+      return JSON.stringify(yaml.parse(input), null, 2);
+    } catch (error) {
+      throw new Error(`Invalid YAML input. Expected valid YAML like:\nname: John\nage: 30`);
+    }
   },
 
   yaml_to_toml: (input: string) => {
-    return tomlStringify(yaml.parse(input));
+    try {
+      return tomlStringify(yaml.parse(input));
+    } catch (error) {
+      throw new Error(`Invalid YAML input. Expected valid YAML like:\nname: John\nage: 30`);
+    }
   },
 
   toml_to_yamal: (input: string) => {
-    return yaml.stringify(tomlParse(input));
+    try {
+      return yaml.stringify(tomlParse(input));
+    } catch (error) {
+      throw new Error(`Invalid TOML input. Expected valid TOML like:\nname = "John"\nage = 30`);
+    }
   },
 
   toml_to_json: (input: string) => {
-    return JSON.stringify(tomlParse(input), null, 2);
+    try {
+      return JSON.stringify(tomlParse(input), null, 2);
+    } catch (error) {
+      throw new Error(`Invalid TOML input. Expected valid TOML like:\nname = "John"\nage = 30`);
+    }
   },
 };
 
