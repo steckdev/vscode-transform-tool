@@ -1,4 +1,4 @@
-import toml from "@iarna/toml";
+import { parse as tomlParse } from "smol-toml";
 import { useCallback } from "react";
 import yaml from "yaml";
 import ConversionWrapper from "../components/ConversionWrapper";
@@ -16,7 +16,7 @@ name = "Osonwa Enterprise"
 export default function TomlToYaml() {
   const transformer = useCallback(
     ({ value }: { value: string }) =>
-      Promise.resolve(yaml.stringify(toml.parse(value))),
+      Promise.resolve(yaml.stringify(tomlParse(value))),
     []
   );
 

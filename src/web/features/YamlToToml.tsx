@@ -1,4 +1,4 @@
-import toml from "@iarna/toml";
+import { stringify as tomlStringify } from "smol-toml";
 import { useCallback } from "react";
 import yaml from "yaml";
 import ConversionWrapper from "../components/ConversionWrapper";
@@ -6,7 +6,7 @@ import ConversionWrapper from "../components/ConversionWrapper";
 const DEFAULT = `spaceX: "Elon"`;
 export default function YamlToToml() {
   const transformer = useCallback(async ({ value }: { value: string }) => {
-    return toml.stringify(yaml.parse(value));
+    return tomlStringify(yaml.parse(value));
   }, []);
 
   return (

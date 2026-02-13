@@ -1,6 +1,6 @@
-import { jsonToSchema } from "@walmartlabs/json-to-simple-graphql-schema/lib";
 import { useCallback } from "react";
 import ConversionWrapper from "../components/ConversionWrapper";
+import { jsonToGraphQLSchema } from "../utils/jsonToGraphql";
 
 const DEFAULT = `
 {
@@ -10,8 +10,8 @@ const DEFAULT = `
 `;
 
 export default function JsonToGraphql() {
-  const transformer = useCallback(({ value }: { value: string }) => {
-    return jsonToSchema({ jsonInput: value }).value;
+  const transformer = useCallback(async ({ value }: { value: string }) => {
+    return jsonToGraphQLSchema(value);
   }, []);
 
   return (

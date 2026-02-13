@@ -1,4 +1,4 @@
-import { parse } from "@iarna/toml";
+import { parse } from "smol-toml";
 import { useCallback } from "react";
 import ConversionWrapper from "../components/ConversionWrapper";
 
