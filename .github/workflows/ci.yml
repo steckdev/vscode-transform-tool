@@ -26,6 +26,9 @@ jobs:
       - name: Compile extension
         run: npm run compile
 
+      - name: Build webview (Vite)
+        run: npm run vite:build
+
       - name: Lint
         run: npm run lint
 

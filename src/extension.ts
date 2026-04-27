@@ -1,11 +1,13 @@
 import * as vscode from "vscode";
 import { LANGUAGE_MAP, TRANSFORMATION_INFO } from "./constants";
-import { isToolString } from "./helpers";
+import { getSettings, isToolString } from "./helpers";
 import { textSelectionHandler } from "./selectTextProcessor";
 import { transformers } from "./transformers";
 import { OptionsProvider } from "./treeProvider";
 import { toolArgs } from "./web/types";
+import { WebviewManager } from "./webviewManager";
 
+let timeOutsIdDump: ReturnType<typeof setTimeout>[] = [];
 
 async function handleTransformationError(tool: toolArgs, error: Error) {
   const info = TRANSFORMATION_INFO[tool];
@@ -16,7 +18,7 @@ async function handleTransformationError(tool: toolArgs, error: Error) {
     { modal: false },
     "Show Example",
     "Paste Your Own Input",
-    "Cancel"
+    "Cancel",
   );
 
   if (action === "Show Example") {
@@ -40,7 +42,7 @@ async function handleTransformationError(tool: toolArgs, error: Error) {
           return "Input cannot be empty";
         }
         return null;
-      }
+      },
     });
 
     if (userInput) {
@@ -107,6 +109,8 @@ async function runTransformation(tool: toolArgs) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  let currentPanel: vscode.WebviewPanel | undefined = undefined;
+  let webviewManager: WebviewManager | undefined;
   let tool: toolArgs = "json_to_typescript";
 
   vscode.window.createTreeView("transform-tool-tree", {
@@ -115,21 +119,35 @@ export function activate(context: vscode.ExtensionContext) {
 
   const disposable = vscode.commands.registerCommand(
     "transform.start",
-    async (args) => {
+    async (args?: { arguments?: [string, string?] }) => {
       const [type, content] = args?.arguments ?? [];
-      tool = isToolString(type ?? "") ? type : tool;
+      tool = isToolString(type ?? "") ? (type as toolArgs) : tool;
 
       if (content) {
         await transformAndCreateDocument(tool, content);
       } else {
-        await runTransformation(tool);
+        webviewManager = WebviewManager.getManager();
+        currentPanel = webviewManager.getOrCreateWebView(
+          context,
+          getSettings({ tool }),
+          false,
+        );
+
+        currentPanel.onDidDispose(
+          () => {
+            currentPanel = undefined;
+            webviewManager?.dispose();
+          },
+          null,
+          context.subscriptions,
+        );
       }
-    }
+    },
   );
 
   const disposableProcessSelected = vscode.commands.registerCommand(
     "transform-tools.processSelectedText",
-    textSelectionHandler
+    textSelectionHandler,
   );
 
   const commandMappings: Array<[string, toolArgs]> = [
@@ -149,13 +167,39 @@ export function activate(context: vscode.ExtensionContext) {
   commandMappings.forEach(([commandId, toolType]) => {
     const disposableCommand = vscode.commands.registerCommand(
       commandId,
-      async () => await runTransformation(toolType)
+      async () => await runTransformation(toolType),
     );
     context.subscriptions.push(disposableCommand);
   });
 
+  const disposableChangeListener = vscode.workspace.onDidChangeConfiguration(
+    (e) => {
+      if (
+        e.affectsConfiguration("workbench.colorTheme") ||
+        e.affectsConfiguration("editor.fontFamily") ||
+        e.affectsConfiguration("editor.fontSize") ||
+        e.affectsConfiguration("editor.fontWeight")
+      ) {
+        const tid = setTimeout(() => {
+          if (!currentPanel) {
+            return;
+          }
+          currentPanel.webview.postMessage({
+            command: "theme",
+            payload: getSettings({ tool }),
+          });
+        }, 1000);
+
+        timeOutsIdDump.push(tid);
+      }
+    },
+  );
+
   context.subscriptions.push(disposable);
   context.subscriptions.push(disposableProcessSelected);
+  context.subscriptions.push(disposableChangeListener);
 }
 
-export function deactivate() {}
+export function deactivate() {
+  timeOutsIdDump.forEach((tid) => clearTimeout(tid));
+}

@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 
 type mainHtmlProps = {
+  /** Same value as `webview.cspSource` — required so bundled script/style URLs are allowed under CSP. */
+  cspSource: string;
   scriptUri: vscode.Uri;
   stylesUri: vscode.Uri;
   workers: Record<string, vscode.Uri>;
@@ -8,6 +10,7 @@ type mainHtmlProps = {
 };
 
 export function getMainHtmlContent({
+  cspSource,
   scriptUri,
   stylesUri,
   workers: { prettierUri },
@@ -21,16 +24,16 @@ export function getMainHtmlContent({
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${stylesUri} 'unsafe-inline'; script-src 'nonce-${nonce}' ${scriptUri}; worker-src blob:; img-src data: https:; connect-src https:;">
+      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${cspSource}; worker-src ${cspSource} blob:; img-src ${cspSource} data: https: blob:; font-src ${cspSource} https: data:; connect-src https: data:;">
       <link href="${stylesUri}" rel="stylesheet">
       <script nonce="${nonce}">
-            window.prettierUri="${prettierUri}";
+            window.prettierUri=${JSON.stringify(String(prettierUri))};
             window.viewSettings=${settings};
       </script>
     </head>
     <body>
       <div id="root"></div>
-      <script nonce="${nonce}" src="${scriptUri}"></script>
+      <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
     </body>
     </html>
   `;
