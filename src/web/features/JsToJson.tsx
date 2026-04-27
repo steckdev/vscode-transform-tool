@@ -1,31 +1,10 @@
-import { useCallback } from "react";
+import { transformers } from "@/src/transformers";
 import ConversionWrapper from "../components/ConversionWrapper";
 
 const DEFAULT = "{hello: {nice: '123'}}";
 
-const safeParseJavaScriptObject = (input: string): unknown => {
-  const trimmed = input.trim();
-
-  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-    const jsonString = trimmed
-      .replace(/(\w+):/g, '"$1":')
-      .replace(/'/g, '"');
-
-    try {
-      return JSON.parse(jsonString);
-    } catch {
-      throw new Error('Invalid JavaScript object syntax. Please use valid JSON-like syntax.');
-    }
-  }
-
-  throw new Error('Input must be a JavaScript object literal (enclosed in {})');
-};
-
 export default function JsObjectToJson() {
-  const transformer = useCallback(async ({ value }: { value: string }) => {
-    const parsed = safeParseJavaScriptObject(value);
-    return JSON.stringify(parsed, null, 2);
-  }, []);
+ const transformer = ({value}:{value: string})=> Promise.resolve(transformers["js_object_to_json"](value));
 
   return (
     <ConversionWrapper

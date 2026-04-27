@@ -104,9 +104,11 @@ suite('Transformers Test Suite', () => {
       assert.throws(() => transformers.js_object_to_json(input));
     });
 
-    test('should throw error for non-object input', () => {
-      const input = "[1, 2, 3]";
-      assert.throws(() => transformers.js_object_to_json(input));
+    test('should stringify JSON5 array literals to JSON', () => {
+      const input = '[1, 2, 3]';
+      const result = transformers.js_object_to_json(input);
+      const parsed = JSON.parse(result);
+      assert.deepStrictEqual(parsed, [1, 2, 3]);
     });
   });
 

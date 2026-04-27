@@ -13,7 +13,11 @@
     "noEmit": false,
     "jsx": "react",
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "types": ["node", "mocha"]
   },
   "include": [
     "src/extension.ts",
@@ -26,10 +30,5 @@
     "src/index.ts",
     "src/test/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "src/web",
-    "src/workers"
-  ]
+  "exclude": ["node_modules", "src/web", "src/workers"]
 }
-

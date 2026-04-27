@@ -1,28 +1,22 @@
-const toml = require("smol-toml");
-const yaml = require("yaml");
-const JsonToTS = require("json-to-ts");
-const { jsonToZod } = require("json-to-zod");
-const gs = require("generate-schema");
+import gs from "generate-schema";
+import JsonToTS from 'json-to-ts';
+import { jsonToZod } from "json-to-zod";
+import JSON5 from 'json5';
+import { parse as tomlParse, stringify as tomlStringify } from "smol-toml";
+import yaml from "yaml";
+import { LANGUAGE_MAP } from "./constants";
 
-const tomlParse = toml.parse;
-const tomlStringify = toml.stringify;
+
+
+export type TransformInput = keyof typeof  LANGUAGE_MAP
 
 const safeParseJavaScriptObject = (input: string): unknown => {
   const trimmed = input.trim();
-
-  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-    const jsonString = trimmed
-      .replace(/(\w+):/g, '"$1":')
-      .replace(/'/g, '"');
-
-    try {
-      return JSON.parse(jsonString);
-    } catch {
-      throw new Error('Invalid JavaScript object syntax. Please use valid JSON-like syntax.');
-    }
+  try{
+      return JSON5.parse(trimmed);
+  }catch{
+    throw new Error('Input must be a JavaScript object literal (enclosed in {})');
   }
-
-  throw new Error('Input must be a JavaScript object literal (enclosed in {})');
 };
 
 const getGraphQLType = (value: any): string => {
@@ -98,7 +92,7 @@ const jsonToGraphQLSchema = (jsonString: string): string => {
   return generateGraphQLSchema(parsed);
 };
 
-export const transformers: Record<string, (input: string) => string> = {
+export const transformers: Record<TransformInput, (input: string) => string> = {
   json_to_typescript: (input: string) => {
     try {
       let result = "";

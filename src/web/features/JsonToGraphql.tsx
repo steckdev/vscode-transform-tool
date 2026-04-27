@@ -1,6 +1,6 @@
+import { transformers } from "@/src/transformers";
 import { useCallback } from "react";
 import ConversionWrapper from "../components/ConversionWrapper";
-import { jsonToGraphQLSchema } from "../utils/jsonToGraphql";
 
 const DEFAULT = `
 {
@@ -11,7 +11,7 @@ const DEFAULT = `
 
 export default function JsonToGraphql() {
   const transformer = useCallback(async ({ value }: { value: string }) => {
-    return jsonToGraphQLSchema(value);
+    return transformers["json_to_graphql"](value);
   }, []);
 
   return (
